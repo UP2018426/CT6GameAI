@@ -58,7 +58,7 @@ public abstract class CompositeNode : BTNode
     public void AddChild(BTNode child)
     {
         children.Add(child);
-        CurrentChildIndex++;
+        //CurrentChildIndex++;
     }
 
     /// <summary>
@@ -84,33 +84,33 @@ public class Selector : CompositeNode
 {
     public Selector(Blackboard bb) : base(bb)
     {
-        
     }
 
     public override BTStatus Execute()
     {
+        BTStatus rv = BTStatus.FAILURE;
         for(int j = CurrentChildIndex; j<children.Count; j++)
         {
-            if(children[j].Execute() == BTStatus.SUCCESS)
+            rv = children[j].Execute();
+            if(rv == BTStatus.SUCCESS)
             {
                 Reset();
                 return BTStatus.SUCCESS;
             }
 
-            else if (children[j].Execute() == BTStatus.RUNNING)
+            else if (rv == BTStatus.RUNNING)
             {
                 CurrentChildIndex = j;
                 return BTStatus.RUNNING;
             }
 
-            else if (children[j].Execute() == BTStatus.FAILURE)
+            else if (rv == BTStatus.FAILURE)
             {
-                return BTStatus.FAILURE;
+                //return BTStatus.FAILURE;
             }
             
         }
 
-        BTStatus rv = BTStatus.FAILURE;
         
         return rv;
     }
@@ -127,7 +127,28 @@ public class Sequence : CompositeNode
     }
     public override BTStatus Execute()
     {
-        BTStatus rv = BTStatus.FAILURE;
+        for (int j = CurrentChildIndex; j < children.Count; j++)
+        {
+            if (children[j].Execute() == BTStatus.FAILURE)
+            {
+                Reset();
+                return BTStatus.FAILURE;
+            }
+
+            else if (children[j].Execute() == BTStatus.RUNNING)
+            {
+                CurrentChildIndex = j;
+                return BTStatus.RUNNING;
+            }
+
+            else if (children[j].Execute() == BTStatus.SUCCESS)
+            {
+                return BTStatus.SUCCESS;
+            }
+
+        }
+
+        BTStatus rv = BTStatus.SUCCESS;
         
         return rv;
     }
